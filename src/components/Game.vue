@@ -112,7 +112,7 @@ export default {
           console.log('pano failed!')
           this.nextLocation()
         }
-      }, 1500)
+      }, 3000)
     },
   },
 }
