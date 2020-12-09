@@ -4,10 +4,11 @@
     mapboxStyle="mapbox://styles/midblue/cjv2c454j6eoy1fnx66ks9tpw"
     :actualCoords="actualCoords"
     :showActual="showActual"
+    :polygon="polygon"
     @showActual="$emit('showActual')"
     @distanceOff="distance => $emit('distanceOff', distance)"
   >
-    <template slot-scope="{ mapboxgl, map, clusterer }"></template>
+    <template slot-scope="{ mapboxgl, map }"></template>
   </MapboxMapLoader>
 </template>
 
@@ -16,7 +17,7 @@
 import MapboxMapLoader from './MapboxMapLoader'
 
 export default {
-  props: ['actualCoords', 'showActual'],
+  props: ['actualCoords', 'showActual', 'polygon'],
   components: {
     MapboxMapLoader,
   },

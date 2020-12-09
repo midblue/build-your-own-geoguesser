@@ -17,7 +17,7 @@ app.post('/dataupload', function(req, res) {
     var dataarray = JSON.parse(data)
     dataarray.push(body)
     fs.writeFile(
-      './saveddata.json',
+      './saved data/saveddata.json',
       JSON.stringify(dataarray),
       (err, result) => {
         if (err) res.send({ status: 'failed to save' })

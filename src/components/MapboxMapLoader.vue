@@ -2,7 +2,7 @@
   <div style="height: 100%;">
     <div id="map" :class="{ ready: styleReady }"></div>
     <template v-if="styleReady">
-      <slot :mapboxgl="mapboxgl" :map="map"/>
+      <slot :mapboxgl="mapboxgl" :map="map" />
     </template>
   </div>
 </template>
@@ -11,7 +11,7 @@
 const circleToPolygon = require('circle-to-polygon')
 
 export default {
-  props: ['apikey', 'mapboxStyle', 'actualCoords', 'showActual'],
+  props: ['apikey', 'mapboxStyle', 'actualCoords', 'showActual', 'polygon'],
 
   data() {
     return {
@@ -22,35 +22,9 @@ export default {
       userCoords: null,
       userMarker: null,
       startTime: Date.now(),
-      polygon: [
-        // [135.73848724365234, 35.07946034047981],
-        // [135.72509765625, 35.03983534080149],
-        // [135.66020965576172, 35.028028432524266],
-        // [135.68252563476562, 34.9909099035313],
-        // [135.65196990966797, 34.9869721019795],
-        // [135.6711959838867, 34.91549624729326],
-        // [135.72784423828125, 34.906768549797434],
-        // [135.77178955078125, 34.93097858831627],
-        // [135.78689575195312, 34.95799531086792],
-        // [135.7958221435547, 35.016500995886005],
-        // [135.7965087890625, 35.06653514925735],
-        // [135.76904296875, 35.07271701786369],
-        // [135.76148986816406, 35.062600989085496],
-        // [135.73848724365234, 35.07946034047981],
-        [135.67480087280273, 35.01425155045957],
-        [135.6789207458496, 35.008065256512594],
-        [135.69574356079102, 34.99808184104146],
-        [135.71428298950195, 34.970234332298475],
-        [135.77625274658203, 34.97220365922886],
-        [135.79256057739258, 35.04025698454798],
-        [135.7774543762207, 35.046159768522124],
-        [135.75857162475586, 35.044332761914966],
-        [135.73110580444336, 35.02830956921098],
-        [135.67480087280273, 35.01425155045957],
-      ],
       defaultPosition: {
         bearing: 0,
-        center: [135.748679, 35.0],
+        center: this.polygon[0],
         zoom: 10.2,
         pitch: 0,
         speed: 2,
@@ -69,7 +43,7 @@ export default {
       if (!this.mapboxgl || !this.map) return
       if (this.actualMarker || !shouldShow) this.actualMarker.remove()
 
-      this.fitToKyoto()
+      this.fitToBounds()
 
       if (shouldShow)
         this.actualMarker = new this.mapboxgl.Marker({ color: '#ffbb00' })
@@ -88,7 +62,7 @@ export default {
       if (!this.mapboxgl || !this.map) return
       if (this.userMarker || !newCoords) this.userMarker.remove()
 
-      this.fitToKyoto()
+      this.fitToBounds()
 
       if (newCoords) {
         this.map.addLayer({
@@ -109,7 +83,7 @@ export default {
           },
           layout: {},
           paint: {
-            'line-color': '#77bbff',
+            'line-color': '#2EFF70',
             'line-width': 2,
           },
         })
@@ -117,7 +91,7 @@ export default {
         const polygon = circleToPolygon(
           [this.actualCoords.lng, this.actualCoords.lat],
           1000,
-          32
+          32,
         )
 
         this.map.addLayer({
@@ -136,37 +110,37 @@ export default {
           },
         })
 
-        this.userMarker = new this.mapboxgl.Marker({ color: '#77bbff' })
+        this.userMarker = new this.mapboxgl.Marker({ color: '#2EFF70' })
           .setLngLat(newCoords)
           .addTo(this.map)
 
         const distance = getDistanceFromLatLonInKm(
           this.actualCoords.lng,
           this.actualCoords.lat,
-          ...newCoords
+          ...newCoords,
         )
         this.$emit('distanceOff', distance)
 
-        const payloadToDatabase = {
-          actualCoords: [this.actualCoords.lng, this.actualCoords.lat],
-          userCoords: newCoords,
-          date: new Date(),
-          distanceOffInKm: distance,
-          timeTakenInMs: Date.now() - this.startTime,
-        }
-        fetch('http://0.0.0.0:3008/dataupload', {
-          method: 'post',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payloadToDatabase),
-        })
-          .then(res => {
-            return res.json()
-          })
-          .then(data => {
-            if (!data || data.status !== 'ok')
-              console.error('Failed on server!', data.status)
-            else console.info('saved!')
-          })
+        // const payloadToDatabase = {
+        //   actualCoords: [this.actualCoords.lng, this.actualCoords.lat],
+        //   userCoords: newCoords,
+        //   date: new Date(),
+        //   distanceOffInKm: distance,
+        //   timeTakenInMs: Date.now() - this.startTime,
+        // }
+        // fetch('http://0.0.0.0:3008/dataupload', {
+        //   method: 'post',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(payloadToDatabase),
+        // })
+        //   .then(res => {
+        //     return res.json()
+        //   })
+        //   .then(data => {
+        //     if (!data || data.status !== 'ok')
+        //       console.error('Failed on server!', data.status)
+        //     else console.info('saved!')
+        //   })
       }
     },
   },
@@ -201,20 +175,20 @@ export default {
       this.map.setLayoutProperty(
         'place-town-village-hamlet-label',
         'text-field',
-        ['get', 'name_ja']
+        ['get', 'name_ja'],
       )
 
       this.map.setLayoutProperty(
         'place-neighborhood-suburb-label',
         'text-field',
-        ['get', 'name_ja']
+        ['get', 'name_ja'],
       )
 
       this.map.setLayoutProperty('road-label', 'text-field', ['get', 'name_ja'])
     })
 
     this.map.on('load', () => {
-      this.fitToKyoto()
+      this.fitToBounds()
       this.map.addLayer({
         id: 'kyotooutlinelayer',
         type: 'line',
@@ -247,7 +221,7 @@ export default {
   },
 
   methods: {
-    fitToKyoto() {
+    fitToBounds() {
       this.map.fitBounds(
         [
           [
@@ -259,7 +233,7 @@ export default {
             Math.min(...this.polygon.map(p => p[1])),
           ],
         ],
-        { padding: { top: 20, left: 20, bottom: 20, right: 20 } }
+        { padding: { top: 20, left: 20, bottom: 20, right: 20 } },
       )
     },
   },
